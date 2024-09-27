@@ -138,9 +138,7 @@ curl -X POST http://localhost:8080/api/callback-router/ -d '{"callback": "value"
 
 ## Possible Errors
 
-### 401 Unauthorized
-
-Authentication error if the token is invalid or missing.
+- **401 Unauthorized**: Authentication error if the token is invalid or missing.
 
 **Example response**:
 
@@ -150,9 +148,7 @@ Authentication error if the token is invalid or missing.
 }
 ```
 
-### 502 Bad Gateway
-
-Error proxying the request to the target service.
+- **502 Bad Gateway**: Error proxying the request to the target service.
 
 **Example response**:
 
@@ -162,3 +158,100 @@ Error proxying the request to the target service.
 }
 ```
 
+## Monitoring
+
+The API Gateway exposes metrics for Prometheus and can be visualized in Grafana.
+
+### GET /metrics
+
+**Description**: Returns Prometheus metrics.
+
+- **URL**: `/metrics/`
+- **Method**: `GET`
+
+### Example Request using curl
+
+```bash
+curl http://localhost:8080/metrics
+```
+
+**Response**: Returns metrics in Prometheus format.
+
+## Prometheus and Grafana Setup
+
+### Prometheus
+
+Prometheus is set up to scrape the `/metrics` endpoint from the API Gateway.
+
+#### Access Prometheus:
+Once the containers are running, you can access the Prometheus dashboard by visiting:
+
+```text
+http://localhost:9090
+```
+
+#### Verify Scraping
+
+You can verify that Prometheus is correctly scraping the metrics from the API Gateway by searching for the metric `api_gateway_requests_total` on the Prometheus UI.
+
+### Grafana
+
+Grafana can be used to visualize the metrics scraped by Prometheus. Here's how to set it up.
+
+#### Access Grafana
+
+Once the containers are running, you can access the Grafana dashboard by visiting:
+
+```text
+http://localhost:3000
+```
+
+#### Login to Grafana:
+Default credentials for Grafana:
+
+- **Username**: `admin`
+- **Password**: `admin`
+
+You'll be prompted to change the password on the first login.
+
+### Add Prometheus as a Data Source
+
+1. Go to the **Grafana Dashboard** → **Configuration** → **Data Sources**.
+2. Click **Add data source**.
+3. Select **Prometheus**.
+4. Set the **URL** to `http://prometheus:9090` (or `http://localhost:9090` if you're running Prometheus locally).
+5. Click **Save & Test** to verify the connection.
+
+### Create a Dashboard
+
+1. After adding Prometheus as a data source, go to **Create** → **Dashboard**.
+2. Add a new **Graph** panel.
+3. In the **Metrics** tab, add your Prometheus metric, for example:
+
+    ```text
+    api_gateway_requests_total
+    ```
+
+4. You can now visualize the total number of requests processed by the API Gateway.
+
+## Possible Errors
+
+- **502 Bad Gateway**: Occurs if the target service is unavailable or there is an error proxying the request.
+
+- **401 Unauthorized**: Authentication error, occurs when the JWT token is missing or invalid.
+
+- **400 Bad Request**: Request error, such as when the request body is malformed.
+
+## Logs
+
+All logs for the API Gateway are available in real time through Docker:
+
+```bash
+docker-compose logs -f
+```
+
+## Notes
+
+- Ensure that services like settings-service and callback-router are running correctly, as the API Gateway relies on them.
+
+- You can configure environment variables in the docker-compose.yml file if you need to specify custom parameters for each service.
